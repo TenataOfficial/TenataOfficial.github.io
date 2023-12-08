@@ -29,52 +29,47 @@
     </video>
 
     <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const decryptionKey = '01234567890123456789012345678901';
+        document.addEventListener('DOMContentLoaded', function () {
+            const decryptionKey = '01234567890123456789012345678901';
 
-        async function decryptAndPlay() {
-            var urlParams = new URLSearchParams(window.location.search);
-            var encryptedText = urlParams.get('id');
-            var keyBytes = new TextEncoder().encode(decryptionKey);
-            var encryptedBytes = Uint8Array.from(atob(encryptedText), c => c.charCodeAt(0));
-            
-            try {
-            // Create AES decryption algorithm
-            crypto.subtle.importKey("raw", keyBytes, { name: "AES-CBC" }, false, ["decrypt"])
-                .then(function (key) {
-                    return crypto.subtle.decrypt({ name: "AES-CBC", iv: encryptedBytes.slice(0, 16) }, key, encryptedBytes.slice(16));
-                })
-                .then(function (decryptedBuffer) {
+            async function decryptAndPlay() {
+                try {
+                    var urlParams = new URLSearchParams(window.location.search);
+                    var encryptedText = urlParams.get('id');
+                    var keyBytes = new TextEncoder().encode(decryptionKey);
+                    var decodedText = atob(encryptedText);
+                    var encryptedBytes = Uint8Array.from(decodedText, c => c.charCodeAt(0));
+
+                    // Create AES decryption algorithm
+                    const key = await crypto.subtle.importKey("raw", keyBytes, { name: "AES-CBC" }, false, ["decrypt"]);
+                    const decryptedBuffer = await crypto.subtle.decrypt({ name: "AES-CBC", iv: encryptedBytes.slice(0, 16) }, key, encryptedBytes.slice(16));
                     var decryptedText = new TextDecoder().decode(decryptedBuffer);
+
                     // Use the decrypted text as the source for the video player
                     var player = videojs('my-video', {
-                    techOrder: ['html5', 'flash'],
-                    html5: {
-                        hls: {
-                            enableLowInitialPlaylist: true,
-                            smoothQualityChange: true,
-                            overrideNative: true,
-                            // Aqui você pode adicionar outras configurações do hls.js se necessário
+                        techOrder: ['html5', 'flash'],
+                        html5: {
+                            hls: {
+                                enableLowInitialPlaylist: true,
+                                smoothQualityChange: true,
+                                overrideNative: true,
+                                // Aqui você pode adicionar outras configurações do hls.js se necessário
+                            },
                         },
-                    },
-                    sources: [{
-                        src: decryptedText,
-                        type: 'application/x-mpegURL',
-                    }],
-                });
-                    
-                })
-                
-                .catch(function (err) {
-                    console.error(err);
-                });
+                        sources: [{
+                            src: decryptedText,
+                            type: 'application/x-mpegURL',
+                        }],
+                    });
 
-            } catch (error) {
-                console.error("Erro na descriptografia:", error);
+                } catch (error) {
+                    console.error("Erro na descriptografia:", error);
+                }
             }
-        }
 
-        decryptAndPlay();
-    });
-</script>
+            decryptAndPlay();
+        });
+    </script>
 </body>
+
+</html>
