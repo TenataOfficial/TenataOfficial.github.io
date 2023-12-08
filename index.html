@@ -38,8 +38,11 @@
 
             async function decryptText(encryptedText, key) {
                 try {
-                    // Decode the base64-encoded encrypted text
-                    var encryptedBytes = CryptoJS.enc.Base64.parse(encryptedText);
+            // Converta a string decodificada para um array de bytes
+            var encryptedBytes = new Uint8Array(encryptedText.length);
+            for (var i = 0; i < encryptedText.length; i++) {
+                encryptedBytes[i] = encryptedText.charCodeAt(i);
+            }
 
                     // Decrypt using AES-CBC
                     var decryptedText = CryptoJS.AES.decrypt(
