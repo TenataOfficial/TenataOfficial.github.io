@@ -33,7 +33,8 @@
             const decryptionKey = '01234567890123456789012345678901';
             var urlAtual = window.location.href;
             var urlObjeto = new URL(urlAtual);
-            const encryptedText = urlObjeto.searchParams.get('id');
+            const encryptedTextpar = urlObjeto.searchParams.get('id');
+            const encryptedText = atob(decodeURIComponent(encryptedTextpar));
 
             async function decryptText(encryptedText, key) {
                 try {
