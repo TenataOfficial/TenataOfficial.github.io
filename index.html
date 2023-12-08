@@ -35,11 +35,21 @@
             var urlObjeto = new URL(urlAtual);
             const encryptedText = urlObjeto.searchParams.get('id');
 
-            async function decryptText(encryptedText, key) {
+            async function decryptText(encryptedText, key1) {
             return new Promise((resolve, reject) => {
-                const decrypted = CryptoJS.AES.decrypt(encryptedText, key);
-                const decryptedText = decrypted.toString(CryptoJS.enc.Utf8);
-                resolve(decryptedText);
+                var keyBytes = new TextEncoder().encode(key1);
+                var encryptedBytes = Uint8Array.from(atob(encryptedText), c => c.charCodeAt(0));
+                var aesAlg = crypto.subtle.importKey("raw", keyBytes, { name: "AES-CBC" }, false, ["decrypt"]);
+
+            // Decrypt the data
+            aesAlg.then(function (key) {
+                return crypto.subtle.decrypt({ name: "AES-CBC", iv: encryptedBytes.slice(0, 16) }, key, encryptedBytes.slice(16));
+            }).then(function (decryptedBuffer) {
+                var decryptedText = new TextDecoder().decode(decryptedBuffer);
+                 resolve(decryptedText);
+            }).catch(function (err) {
+                console.error(err);
+            });
             });
         }
             
