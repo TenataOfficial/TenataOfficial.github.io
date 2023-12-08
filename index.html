@@ -1,52 +1,74 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang='en'>
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Decrypt and Play Video</title>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <link rel='stylesheet' href='https://vjs.zencdn.net/7.15.4/video-js.css'>
+    <script  src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script  src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.js"></script>
+    <script src="https://vjs.zencdn.net/7.15.4/video.js"></script>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://vjs.zencdn.net">
+    <title>HTML Gerado Dinamicamente</title>
 </head>
+
+<style>
+    .video-js {
+        width: 100vw;
+        height: 100vh;
+        flex: 1;
+    }
+</style>
+
 <body>
-    <h1>Video Decryption and Playback</h1>
-
-    <label for="decryptionKey">Decryption Key:</label>
-    <input type="text" id="decryptionKey">
-
-    <br>
-
-    <button onclick="decryptAndPlayVideo()">Decrypt and Play Video</button>
-
-    <br>
-
-    <video id="videoPlayer" controls width="600">
-        Your browser does not support the video tag.
+    <video id='my-video' class='video-js' controls autoplay>
+        <source id='video-source' type='application/x-mpegURL'>
+        Seu navegador não suporta o elemento de vídeo.
     </video>
 
     <script>
-        function decryptAndPlayVideo() {
-            var decryptionKey = document.getElementById("decryptionKey").value;
-
-            // Extract encrypted text from the 'id' parameter in the URL
+        
+        document.addEventListener('DOMContentLoaded', async function () {
+            const decryptionKey = '01234567890123456789012345678901';
             var urlParams = new URLSearchParams(window.location.search);
             var encryptedText = urlParams.get('id');
-
-            // Convert key and IV from base64 to Uint8Array
             var keyBytes = new TextEncoder().encode(decryptionKey);
             var encryptedBytes = Uint8Array.from(atob(encryptedText), c => c.charCodeAt(0));
-
-            // Create AES decryption algorithm
             crypto.subtle.importKey("raw", keyBytes, { name: "AES-CBC" }, false, ["decrypt"])
                 .then(function (key) {
                     return crypto.subtle.decrypt({ name: "AES-CBC", iv: encryptedBytes.slice(0, 16) }, key, encryptedBytes.slice(16));
                 })
                 .then(function (decryptedBuffer) {
                     var decryptedText = new TextDecoder().decode(decryptedBuffer);
-                    // Use the decrypted text as the source for the video player
-                    document.getElementById("videoPlayer").src = decryptedText;
+
+                      try {
+                const decryptedText = await decryptText(encryptedText, decryptionKey);
+                console.log(decryptedText)
+                var player = videojs('my-video', {
+                    techOrder: ['html5', 'flash'],
+                    html5: {
+                        hls: {
+                            enableLowInitialPlaylist: true,
+                            smoothQualityChange: true,
+                            overrideNative: true,
+                            // Aqui você pode adicionar outras configurações do hls.js se necessário
+                        },
+                    },
+                    sources: [{
+                        src: decryptedText,
+                        type: 'application/x-mpegURL',
+                    }],
+                });
+            } catch (error) {
+                console.error("Erro na descriptografia:", error);
+            }
+                    
                 })
                 .catch(function (err) {
                     console.error(err);
                 });
-        }
+        });
     </script>
 </body>
-</html>
