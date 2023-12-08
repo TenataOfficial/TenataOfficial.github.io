@@ -29,11 +29,13 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', async function () {
-            const decryptionKey = '01234567890123456789012345678901';
-            var urlAtual = window.location.href;
-            var urlObjeto = new URL(urlAtual);
-            const encryptedTextpar = urlObjeto.searchParams.get('id');
-            const encryptedText = atob(decodeURIComponent(encryptedTextpar));
+    const decryptionKey = '01234567890123456789012345678901';
+    var urlAtual = window.location.href;
+    var urlObjeto = new URL(urlAtual);
+    
+    const encryptedTextpar = urlObjeto.searchParams.get('id');
+    const decodedEncryptedText = decodeURIComponent(encryptedTextpar);
+    const encryptedText = atob(decodedEncryptedText);
 
             async function decryptText(encryptedText, key) {
                 try {
