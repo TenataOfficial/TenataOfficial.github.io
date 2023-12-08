@@ -33,39 +33,18 @@
             const decryptionKey = '01234567890123456789012345678901';
             var urlAtual = window.location.href;
             var urlObjeto = new URL(urlAtual);
-            const encryptedTextpar = urlObjeto.searchParams.get('id');
-            const encryptedText = atob(decodeURIComponent(encryptedTextpar));
+            const encryptedText = urlObjeto.searchParams.get('id');
 
-            async function decryptText(encryptedText, key) {
-                try {
-            // Converta a string decodificada para um array de bytes
-            var encryptedBytes = new Uint8Array(encryptedText.length);
-            for (var i = 0; i < encryptedText.length; i++) {
-                encryptedBytes[i] = encryptedText.charCodeAt(i);
-            }
+            async function decryptText(encryptedText, decryptionKey) {
+                var keyBytes = new TextEncoder().encode(decryptionKey);
+                var encryptedBytes = Uint8Array.from(atob(encryptedText), c => c.charCodeAt(0));
+                var aesAlg = crypto.subtle.importKey("raw", keyBytes, { name: "AES-CBC" }, false, ["decrypt"]);
+                aesAlg.then(function (key) {
+                return crypto.subtle.decrypt({ name: "AES-CBC", iv: encryptedBytes.slice(0, 16) }, key, encryptedBytes.slice(16));
+            }).then(function (decryptedBuffer) {
+                var decryptedText = new TextDecoder().decode(decryptedBuffer);
 
-                    // Decrypt using AES-CBC
-                    var decryptedText = CryptoJS.AES.decrypt(
-                        { ciphertext: encryptedBytes.subarray(16) },
-                        CryptoJS.enc.Utf8.parse(key),
-                        {
-                            iv: encryptedBytes.subarray(0, 16),
-                            mode: CryptoJS.mode.CBC,
-                            padding: CryptoJS.pad.Pkcs7
-                        }
-                    ).toString(CryptoJS.enc.Utf8);
-
-                    return decryptedText;
-                } catch (error) {
-                    throw new Error("Erro na descriptografia: " + error.message);
-                }
-            }
-
-            try {
-                const decryptedText = await decryptText(encryptedText, decryptionKey);
-                console.log(decryptedText);
-
-                var player = videojs('my-video', {
+var player = videojs('my-video', {
                     techOrder: ['html5', 'flash'],
                     html5: {
                         hls: {
@@ -84,7 +63,8 @@
                 console.error(error.message);
             }
         });
+
+            
     </script>
 </body>
-
 </html>
