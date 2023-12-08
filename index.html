@@ -29,23 +29,19 @@
     </video>
 
     <script>
-        
-        document.addEventListener('DOMContentLoaded', async function () {
-            const decryptionKey = '01234567890123456789012345678901';
-            var urlParams = new URLSearchParams(window.location.search);
-            var encryptedText = urlParams.get('id');
-            var keyBytes = new TextEncoder().encode(decryptionKey);
-            var encryptedBytes = Uint8Array.from(atob(encryptedText), c => c.charCodeAt(0));
-            crypto.subtle.importKey("raw", keyBytes, { name: "AES-CBC" }, false, ["decrypt"])
-                .then(function (key) {
-                    return crypto.subtle.decrypt({ name: "AES-CBC", iv: encryptedBytes.slice(0, 16) }, key, encryptedBytes.slice(16));
-                })
-                .then(function (decryptedBuffer) {
-                    var decryptedText = new TextDecoder().decode(decryptedBuffer);
+    document.addEventListener('DOMContentLoaded', function () {
+        const decryptionKey = '01234567890123456789012345678901';
+        var urlParams = new URLSearchParams(window.location.search);
+        var encryptedText = urlParams.get('id');
+        var keyBytes = new TextEncoder().encode(decryptionKey);
+        var encryptedBytes = Uint8Array.from(atob(encryptedText), c => c.charCodeAt(0));
 
-                      try {
-                const decryptedText = await decryptText(encryptedText, decryptionKey);
-                console.log(decryptedText)
+        async function decryptAndPlay() {
+            try {
+                const key = await crypto.subtle.importKey("raw", keyBytes, { name: "AES-CBC" }, false, ["decrypt"]);
+                const decryptedBuffer = await crypto.subtle.decrypt({ name: "AES-CBC", iv: encryptedBytes.slice(0, 16) }, key, encryptedBytes.slice(16));
+                var decryptedText = new TextDecoder().decode(decryptedBuffer);
+
                 var player = videojs('my-video', {
                     techOrder: ['html5', 'flash'],
                     html5: {
@@ -64,11 +60,9 @@
             } catch (error) {
                 console.error("Erro na descriptografia:", error);
             }
-                    
-                })
-                .catch(function (err) {
-                    console.error(err);
-                });
-        });
-    </script>
+        }
+
+        decryptAndPlay();
+    });
+</script>
 </body>
