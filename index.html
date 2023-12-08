@@ -35,6 +35,14 @@
             var urlObjeto = new URL(urlAtual);
             const encryptedText = urlObjeto.searchParams.get('id');
 
+            async function decryptText(encryptedText, key) {
+            return new Promise((resolve, reject) => {
+                const decrypted = CryptoJS.AES.decrypt(encryptedText, key);
+                const decryptedText = decrypted.toString(CryptoJS.enc.Utf8);
+                resolve(decryptedText);
+            });
+        }
+            
             try {
                 const decryptedText = await decryptText(encryptedText, decryptionKey);
                 console.log(decryptedText)
@@ -58,13 +66,6 @@
             }
         });
 
-        async function decryptText(encryptedText, key) {
-            return new Promise((resolve, reject) => {
-                const decrypted = CryptoJS.AES.decrypt(encryptedText, key);
-                const decryptedText = decrypted.toString(CryptoJS.enc.Utf8);
-                resolve(decryptedText);
-                console.log(resolve);
-            });
-        }
+        
     </script>
 </body>
