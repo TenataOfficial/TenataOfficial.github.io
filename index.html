@@ -1,15 +1,14 @@
 <!DOCTYPE html>
-<html lang='en'>
+<html lang="en">
 
 <head>
-    <meta charset='UTF-8'>
-    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <link rel='stylesheet' href='https://vjs.zencdn.net/7.15.4/video-js.css'>
-    <script  src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-    <script  src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://vjs.zencdn.net/7.15.4/video-js.css">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="https://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/aes.js"></script>
     <script src="https://vjs.zencdn.net/7.15.4/video.js"></script>
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     <link rel="preconnect" href="https://vjs.zencdn.net">
     <title>HTML Gerado Dinamicamente</title>
 </head>
@@ -23,8 +22,8 @@
 </style>
 
 <body>
-    <video id='my-video' class='video-js' controls autoplay>
-        <source id='video-source' type='application/x-mpegURL'>
+    <video id="my-video" class="video-js" controls autoplay>
+        <source id="video-source" type="application/x-mpegURL">
         Seu navegador não suporta o elemento de vídeo.
     </video>
 
@@ -33,18 +32,39 @@
             const decryptionKey = '01234567890123456789012345678901';
             var urlAtual = window.location.href;
             var urlObjeto = new URL(urlAtual);
-            const encryptedText = urlObjeto.searchParams.get('id');
+            const encryptedTextpar = urlObjeto.searchParams.get('id');
+            const encryptedText = atob(decodeURIComponent(encryptedTextpar));
 
-            async function decryptText(encryptedText, decryptionKey) {
-                var keyBytes = new TextEncoder().encode(decryptionKey);
-                var encryptedBytes = Uint8Array.from(atob(encryptedText), c => c.charCodeAt(0));
-                var aesAlg = crypto.subtle.importKey("raw", keyBytes, { name: "AES-CBC" }, false, ["decrypt"]);
-                aesAlg.then(function (key) {
-                return crypto.subtle.decrypt({ name: "AES-CBC", iv: encryptedBytes.slice(0, 16) }, key, encryptedBytes.slice(16));
-            }).then(function (decryptedBuffer) {
-                var decryptedText = new TextDecoder().decode(decryptedBuffer);
+            async function decryptText(encryptedText, key) {
+                try {
+                    // Converta a string decodificada para um array de bytes
+                    var encryptedBytes = new Uint8Array(encryptedText.length);
+                    for (var i = 0; i < encryptedText.length; i++) {
+                        encryptedBytes[i] = encryptedText.charCodeAt(i);
+                    }
 
-var player = videojs('my-video', {
+                    // Decrypt usando AES-CBC
+                    var decryptedText = CryptoJS.AES.decrypt(
+                        { ciphertext: encryptedBytes.subarray(16) },
+                        CryptoJS.enc.Utf8.parse(key),
+                        {
+                            iv: encryptedBytes.subarray(0, 16),
+                            mode: CryptoJS.mode.CBC,
+                            padding: CryptoJS.pad.Pkcs7
+                        }
+                    ).toString(CryptoJS.enc.Utf8);
+
+                    return decryptedText;
+                } catch (error) {
+                    throw new Error("Erro na descriptografia: " + error.message);
+                }
+            }
+
+            try {
+                const decryptedText = await decryptText(encryptedText, decryptionKey);
+                console.log(decryptedText);
+
+                var player = videojs('my-video', {
                     techOrder: ['html5', 'flash'],
                     html5: {
                         hls: {
@@ -54,17 +74,20 @@ var player = videojs('my-video', {
                             // Aqui você pode adicionar outras configurações do hls.js se necessário
                         },
                     },
-                    sources: [{
-                        src: decryptedText,
-                        type: 'application/x-mpegURL',
-                    }],
                 });
+
+                player.src({
+                    src: decryptedText,
+                    type: 'application/x-mpegURL',
+                });
+
+                // Iniciar o player depois de definir a origem
+                player.play();
             } catch (error) {
                 console.error(error.message);
             }
         });
-
-            
     </script>
 </body>
+
 </html>
