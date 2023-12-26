@@ -1,75 +1,95 @@
 <!DOCTYPE html>
-<html lang='en'>
-
+<html lang="pt-br">
 <head>
-    <meta charset='UTF-8'>
-    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <link rel='stylesheet' href='https://vjs.zencdn.net/7.15.4/video-js.css'>
-    <script  src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-    <script  src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.js"></script>
-    <script src="https://vjs.zencdn.net/7.15.4/video.js"></script>
-    <link rel="preconnect" href="https://cdn.jsdelivr.net">
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
-    <link rel="preconnect" href="https://vjs.zencdn.net">
-    <title>HTML Gerado Dinamicamente</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tenata - Canal de Jogos</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #b3e0ff; /* tom azul claro */
+            color: #333;
+        }
+
+        #menu {
+            width: 250px;
+            height: 100%;
+            background-color: #1a53ff; /* azul escuro */
+            position: fixed;
+            left: -250px;
+            transition: 0.3s;
+            padding-top: 20px;
+        }
+
+        #main {
+            transition: margin-left 0.3s;
+            padding: 16px;
+        }
+
+        #openBtn {
+            font-size: 20px;
+            cursor: pointer;
+            position: fixed;
+            left: 10px;
+            top: 10px;
+            color: white;
+        }
+
+        #profilePic {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            margin-bottom: 10px;
+        }
+
+        .parca {
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
-
-<style>
-    .video-js {
-        width: 100vw;
-        height: 100vh;
-        flex: 1;
-    }
-</style>
-
 <body>
-    <video id='my-video' class='video-js' controls autoplay>
-        <source id='video-source' type='application/x-mpegURL'>
-        Seu navegador não suporta o elemento de vídeo.
-    </video>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const decryptionKey = '01234567890123456789012345678901';
+<div id="menu">
+    <img id="profilePic" src="caminho/para/sua/foto.jpg" alt="Foto do perfil">
+    <div>
+        <h1>TENATA</h1>
+        <p>Canal de Jogos ativo por 10 anos</p>
+        <p>Eu, Tenata, gosto de jogar e programar. Comecei a gravar aos 13 anos.</p>
+        <p>Piadinha: Porque Tenata? Renata sem "R", porque sou único!</p>
+        <h2>Comunidade dos Parças</h2>
+        <div class="parca">
+            <img src="caminho/para/foto1.jpg" alt="Foto do parça 1">
+            <p>@atanet7</p>
+        </div>
+        <div class="parca">
+            <img src="caminho/para/foto2.jpg" alt="Foto do parça 2">
+            <p>@jimmy12</p>
+        </div>
+    </div>
+</div>
 
-            async function decryptAndPlay() {
-                try {
-                    var urlParams = new URLSearchParams(window.location.search);
-                    var encryptedText = urlParams.get('id');
-                    var keyBytes = new TextEncoder().encode(decryptionKey);
-                    var decodedText = atob(encryptedText);
-                    var encryptedBytes = Uint8Array.from(decodedText, c => c.charCodeAt(0));
+<div id="main">
+    <span id="openBtn" onclick="toggleMenu()">&#9776; Menu</span>
+    <h1>Tenata</h1>
+    <p>Conteúdo principal do seu site...</p>
+</div>
 
-                    // Create AES decryption algorithm
-                    const key = await crypto.subtle.importKey("raw", keyBytes, { name: "AES-CBC" }, false, ["decrypt"]);
-                    const decryptedBuffer = await crypto.subtle.decrypt({ name: "AES-CBC", iv: encryptedBytes.slice(0, 16) }, key, encryptedBytes.slice(16));
-                    var decryptedText = new TextDecoder().decode(decryptedBuffer);
+<script>
+    function toggleMenu() {
+        var menu = document.getElementById("menu");
+        var main = document.getElementById("main");
 
-                    // Use the decrypted text as the source for the video player
-                    var player = videojs('my-video', {
-                        techOrder: ['html5', 'flash'],
-                        html5: {
-                            hls: {
-                                enableLowInitialPlaylist: true,
-                                smoothQualityChange: true,
-                                overrideNative: true,
-                                // Aqui você pode adicionar outras configurações do hls.js se necessário
-                            },
-                        },
-                        sources: [{
-                            src: decryptedText,
-                            type: 'application/x-mpegURL',
-                        }],
-                    });
+        if (menu.style.left === "-250px") {
+            menu.style.left = "0";
+            main.style.marginLeft = "250px";
+        } else {
+            menu.style.left = "-250px";
+            main.style.marginLeft= "0";
+        }
+    }
+</script>
 
-                } catch (error) {
-                    console.error("Erro na descriptografia:", error);
-                }
-            }
-
-            decryptAndPlay();
-        });
-    </script>
 </body>
-
 </html>
